@@ -113,6 +113,17 @@ Describe the work in plain language and say what "done" looks like.
 
 Keep tasks small, about an hour of work or less. A small task loses little when an agent is cut off. Working samples are in [`examples/`](examples).
 
+## Preparing worktrees
+
+Each task runs in a fresh git worktree, which has no installed dependencies. To prepare it, list commands under setup in .bullpen/config.json. Bullpen runs them once per worktree before the agent starts:
+
+```json
+{ "setup": ["npm ci"] }
+```
+
+A failing setup marks the task 
+eeds_human without starting an agent. See [Configuration](docs/configuration.md#preparing-worktrees).
+
 ## Supported agents
 
 | Agent | Status | Tested with |

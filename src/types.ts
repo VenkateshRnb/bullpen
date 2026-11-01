@@ -25,6 +25,9 @@ export interface Config {
   concurrency: number;
   taskTimeoutMinutes: number;
   checkTimeoutMinutes: number;
+  /** Commands Bullpen runs itself, once per new worktree and before any agent starts (for example "npm ci"). */
+  setup: string[];
+  setupTimeoutMinutes: number;
   maxAttemptsPerTask: number;
   maxReviewRounds: number;
   review: boolean;

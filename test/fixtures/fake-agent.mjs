@@ -23,7 +23,8 @@ const note = (line) => fs.appendFileSync("HANDOFF.md", `\n- ${line}\n`);
 
 switch (behavior) {
   case "ok":
-    fs.appendFileSync(`out-${taskId}.txt`, `${name}\n`);
+    // Records whether worktree setup had already run when the agent started.
+    fs.appendFileSync(`out-${taskId}.txt`, `${name} setup=${fs.existsSync("deps-installed.txt")}\n`);
     note(`${name} did the work`);
     console.log("all done\nBULLPEN_STATUS: DONE");
     break;

@@ -18,12 +18,13 @@ pending ──► running ──► awaiting_review ──► done
 ```
 
 1. **Pick an agent.** The task's `agents:` list is a hard pin. Otherwise `routing[kind]` is the preferred order and any other enabled agent is a fallback. Agents that are resting, busy, excluded for this task, or not installed are skipped. Only one task runs per agent at a time.
-2. **Run it headless** in the task's worktree. The prompt carries the task, the project conventions, the acceptance checks and the current `HANDOFF.md`.
-3. **Save the work.** Whatever the outcome, Bullpen commits the worktree (`wip(<id>): <agent> attempt <n>`). Agents are told not to commit, because some sandboxes cannot.
-4. **Decide what happened** (table below).
-5. **Run the checks** yourself defined in the task's `check:` list. Failures are written into `HANDOFF.md` for the next attempt.
-6. **Review.** A different agent (never the author, unless `allowSelfReview`) reads the diff and answers with a line `REVIEW: APPROVE` or `REVIEW: CHANGES`. Changes go back to the author, at most `maxReviewRounds` times.
-7. **Merge** into `bullpen/integration`. The handoff is archived to `.bullpen/handoff-archive/<id>.md` and dropped from the branch first.
+2. **Prepare the worktree.** If the config lists `setup` commands (for example `npm ci`), Bullpen runs them itself, once per worktree, before any agent starts. If setup fails the task becomes `needs_human` and no agent is started.
+3. **Run it headless** in the task's worktree. The prompt carries the task, the project conventions, the acceptance checks and the current `HANDOFF.md`.
+4. **Save the work.** Whatever the outcome, Bullpen commits the worktree (`wip(<id>): <agent> attempt <n>`). Agents are told not to commit, because some sandboxes cannot.
+5. **Decide what happened** (table below).
+6. **Run the checks** in the task's `check:` list. Bullpen runs them itself and does not rely on the agent's report. Failures are written into `HANDOFF.md` for the next attempt.
+7. **Review.** A different agent (never the author, unless `allowSelfReview`) reads the diff and answers with a line `REVIEW: APPROVE` or `REVIEW: CHANGES`. Changes go back to the author, at most `maxReviewRounds` times.
+8. **Merge** into `bullpen/integration`. The handoff is archived to `.bullpen/handoff-archive/<id>.md` and dropped from the branch first.
 
 ## Outcomes of an attempt
 
@@ -36,6 +37,7 @@ pending ──► running ──► awaiting_review ──► done
 | `error` | Non-zero exit that is not a limit | Retry. After two errors by the same agent it is skipped for this task |
 | `timeout` | Exceeded `taskTimeoutMinutes` | Note, retry with a smaller step. Counts as a failure |
 | `spawn_failed` | The CLI could not start | Rest the agent for 30 minutes |
+| `setup_failed` | A `setup` command failed or timed out | Mark the task `needs_human`. No agent is started |
 | `crashed` | Bullpen itself threw | Retry. Counts as a failure |
 
 After `maxAttemptsPerTask` failures the task becomes `needs_human`.

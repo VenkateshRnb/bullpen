@@ -2,6 +2,15 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [semantic versioning](https://semver.org/). While below 1.0, minor versions may change behavior.
 
+## [0.3.0] - 2026-10-31
+
+### Added
+
+- A setup option: commands Bullpen runs itself, once per new worktree and before any agent starts (for example 
+pm ci), so checks find installed dependencies. A failing setup marks the task 
+eeds_human without starting an agent.
+- A setupTimeoutMinutes option.
+
 ## [0.2.0] - 2026-10-31
 
 ### Added

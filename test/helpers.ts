@@ -16,6 +16,8 @@ export interface Scenario {
   agents?: string[];
   /** Agents whose sign-in probe reports "signed out". */
   signedOut?: string[];
+  /** Extra files committed to the repository, by relative path. */
+  files?: Record<string, string>;
 }
 
 /** Builds a throwaway git repo wired to two fake agents, "a" and "b". */
@@ -27,6 +29,7 @@ export function makeRepo(s: Scenario) {
   g("config", "user.name", "T");
   writeFileSync(join(repo, "check.mjs"), "import fs from 'node:fs'; process.exit(fs.existsSync(process.argv[2]) ? 0 : 1);\n");
   writeFileSync(join(repo, "README.md"), "# test\n");
+  for (const [name, content] of Object.entries(s.files ?? {})) writeFileSync(join(repo, name), content);
   mkdirSync(join(repo, ".bullpen", "tasks"), { recursive: true });
 
   const names = s.agents ?? ["a", "b"];

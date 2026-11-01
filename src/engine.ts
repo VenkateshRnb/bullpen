@@ -1,5 +1,6 @@
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { dirname, join } from "node:path";
 import { authStatus, runAgent } from "./agents.ts";
 import { loadConfig, resolveCommand } from "./config.ts";
 import { runChecks } from "./gates.ts";
@@ -11,6 +12,7 @@ import {
   ensureTaskWorktree,
   mergeTask,
   removeWorktree,
+  worktreeGitDir,
 } from "./git.ts";
 import { detectAuthFailure, detectLimit } from "./limits.ts";
 import type { LimitVerdict } from "./limits.ts";
@@ -353,6 +355,37 @@ class Engine {
 
   /* ---------- one work attempt ---------- */
 
+  /**
+   * Runs the configured setup commands in a worktree once, before any agent starts, so checks and
+   * agents find the project's dependencies installed. A marker in the worktree's private git
+   * directory records that setup ran for exactly these commands: resumed attempts and reviews skip
+   * it, a recreated worktree runs it again, and changing the commands reruns it. A failing setup is
+   * an environment problem, not the agent's, so the task goes to a human and no agent is started.
+   */
+  private async prepareWorktree(t: Task, wt: string, ts: TaskState, attempt: Attempt): Promise<boolean> {
+    const cmds = this.cfg.setup;
+    if (cmds.length === 0) return true;
+    const marker = join(await worktreeGitDir(wt), "bullpen-setup");
+    const signature = createHash("sha256").update(JSON.stringify(cmds)).digest("hex");
+    if (existsSync(marker) && readFileSync(marker, "utf8") === signature) return true;
+
+    this.log(`${t.id}: preparing the worktree (${cmds.join(" && ")})`);
+    const res = await runChecks(cmds, wt, this.cfg.setupTimeoutMinutes * 60_000);
+    const logFile = join(this.repo, ".bullpen", "logs", `${t.id}-setup.log`);
+    mkdirSync(dirname(logFile), { recursive: true });
+    writeFileSync(logFile, `${res.report}\n`);
+    if (!res.ok) {
+      attempt.outcome = "setup_failed";
+      attempt.note = res.report.slice(0, 600);
+      ts.status = "needs_human";
+      ts.lastError = `worktree setup failed: ${res.report.replace(/\s+/g, " ").slice(0, 300)}`;
+      this.log(`${t.id}: worktree setup failed, needs a human (see ${logFile})`);
+      return false;
+    }
+    writeFileSync(marker, signature);
+    return true;
+  }
+
   private async checkpoint(wt: string, message: string): Promise<void> {
     try {
       await commitAll(wt, message);
@@ -379,6 +412,7 @@ class Engine {
 
     try {
       const wt = await ensureTaskWorktree(this.repo, t.id, this.cfg);
+      if (!(await this.prepareWorktree(t, wt, ts, attempt))) return;
       const handoffPath = join(wt, "HANDOFF.md");
       if (!existsSync(handoffPath)) writeFileSync(handoffPath, handoffTemplate(t.id));
       const prompt = buildWorkPrompt({
@@ -493,6 +527,7 @@ class Engine {
 
     try {
       const wt = await ensureTaskWorktree(this.repo, t.id, this.cfg);
+      if (!(await this.prepareWorktree(t, wt, ts, attempt))) return;
       const { stat, diff } = await diffAgainst(wt, this.cfg.integrationBranch);
       const prompt = buildReviewPrompt({
         task: t,

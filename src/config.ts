@@ -9,6 +9,8 @@ export const DEFAULTS: Config = {
   concurrency: 1,
   taskTimeoutMinutes: 45,
   checkTimeoutMinutes: 10,
+  setup: [],
+  setupTimeoutMinutes: 10,
   maxAttemptsPerTask: 6,
   maxReviewRounds: 2,
   review: true,

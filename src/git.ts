@@ -68,6 +68,14 @@ export async function ensureTaskWorktree(repo: string, id: string, cfg: Config):
   return wt;
 }
 
+/**
+ * The private git directory of a worktree. A file placed there is invisible to `git add` and is
+ * removed together with the worktree, which makes it a safe place for per-worktree markers.
+ */
+export async function worktreeGitDir(wt: string): Promise<string> {
+  return gitOk(["rev-parse", "--absolute-git-dir"], wt);
+}
+
 /** Commit everything in the worktree. Returns false when there was nothing to commit. */
 export async function commitAll(wt: string, message: string): Promise<boolean> {
   // The prompt file (promptVia "file") is scratch and must never be committed.

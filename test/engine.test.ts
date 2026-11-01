@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { runBullpen } from "../src/engine.ts";
@@ -175,6 +176,42 @@ test("a signed-out agent is noticed before it is given any work", T, async () =>
   assert.equal(s.reason, "all_done");
   assert.deepEqual(outputs(repo, "t1"), ["b:work:work_done"]);
   assert.match(loadState(repo).agents.a.lastReason ?? "", /^not signed in/);
+});
+
+// A stand-in for "npm ci": creates a git-ignored file and counts how many times it ran.
+const SETUP_SCRIPT =
+  "import fs from 'node:fs';\nfs.writeFileSync('deps-installed.txt', 'ok');\nfs.appendFileSync(process.env.SETUP_LOG, 'ran\\n');\n";
+
+test("setup runs once per worktree and before the agent starts", T, async () => {
+  const log = join(mkdtempSync(join(tmpdir(), "bullpen-setup-")), "setup.log");
+  process.env.SETUP_LOG = log;
+  const { repo } = makeRepo({
+    tasks: { t1: taskFile("impl", ["node check.mjs out-t1.txt"]) },
+    script: { a: ["nofile", "ok"] },
+    files: { "setup.mjs": SETUP_SCRIPT, ".gitignore": "deps-installed.txt\n" },
+    config: { setup: ["node setup.mjs"] },
+  });
+  const s = await runBullpen(repo, { deps: fakeClock() });
+  assert.equal(s.reason, "all_done");
+  assert.deepEqual(outputs(repo, "t1"), ["a:work:checks_failed", "a:work:work_done", "b:review:approved"]);
+  assert.equal(readFileSync(log, "utf8").trim().split("\n").length, 1, "setup ran once across two attempts and a review");
+  assert.match(readFileSync(join(integration(repo), "out-t1.txt"), "utf8"), /setup=true/, "setup had run before the agent started");
+  assert.ok(!existsSync(join(integration(repo), "deps-installed.txt")), "setup output was not committed");
+});
+
+test("a failing setup stops the task before any agent runs", T, async () => {
+  const { repo } = makeRepo({
+    tasks: { t1: taskFile("impl", ["node check.mjs out-t1.txt"]) },
+    files: { "bad-setup.mjs": "process.exit(1);\n" },
+    config: { setup: ["node bad-setup.mjs"] },
+  });
+  const s = await runBullpen(repo, { deps: fakeClock() });
+  assert.deepEqual(s.needsHuman, ["t1"]);
+  const st = loadState(repo).tasks.t1;
+  assert.match(st.lastError ?? "", /setup/);
+  assert.deepEqual(st.attempts.map((a) => a.outcome), ["setup_failed"]);
+  assert.ok(!existsSync(join(process.env.FAKE_STATE_DIR!, "a.work.count")), "no agent was started");
+  assert.ok(existsSync(join(repo, ".bullpen", "logs", "t1-setup.log")), "the setup output was kept in a log");
 });
 
 test("a second bullpen on the same repo is refused", T, async () => {
