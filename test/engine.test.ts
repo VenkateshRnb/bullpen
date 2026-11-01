@@ -214,6 +214,54 @@ test("a failing setup stops the task before any agent runs", T, async () => {
   assert.ok(existsSync(join(repo, ".bullpen", "logs", "t1-setup.log")), "the setup output was kept in a log");
 });
 
+test("a review that was cut off is closed as interrupted and the reviewer is not benched", T, async () => {
+  const { repo } = makeRepo({ tasks: { t1: taskFile("impl", ["node check.mjs out-t1.txt"]) } });
+  const started = new Date().toISOString();
+  writeFileSync(
+    join(repo, ".bullpen", "state.json"),
+    JSON.stringify({
+      version: 1,
+      agents: {},
+      events: [],
+      tasks: {
+        t1: {
+          status: "awaiting_review",
+          branch: "bullpen/task/t1",
+          reviewRounds: 0,
+          excluded: [],
+          lastAuthor: "a",
+          attempts: [
+            { n: 1, agent: "a", role: "work", startedAt: started, endedAt: started, outcome: "work_done" },
+            { n: 2, agent: "b", role: "review", startedAt: started, outcome: "running" },
+          ],
+        },
+      },
+    }),
+  );
+  const s = await runBullpen(repo, { deps: fakeClock() });
+  assert.equal(s.reason, "all_done");
+  assert.deepEqual(outputs(repo, "t1"), ["a:work:work_done", "b:review:interrupted", "b:review:approved"]);
+  assert.deepEqual(loadState(repo).tasks.t1.excluded, []);
+});
+
+test("a reviewer that already did its job is not benched for one unclear answer", T, async () => {
+  const { repo } = makeRepo({
+    tasks: { t1: taskFile("impl", ["node check.mjs out-t1.txt"]) },
+    script: { a: ["ok", "ok"] },
+    review: { b: ["changes", "garbage", "approve"] },
+  });
+  const s = await runBullpen(repo, { deps: fakeClock() });
+  assert.equal(s.reason, "all_done");
+  assert.deepEqual(outputs(repo, "t1"), [
+    "a:work:work_done",
+    "b:review:changes_requested",
+    "a:work:work_done",
+    "b:review:review_unclear",
+    "b:review:approved",
+  ]);
+  assert.deepEqual(loadState(repo).tasks.t1.excluded, []);
+});
+
 test("a second bullpen on the same repo is refused", T, async () => {
   const { repo } = makeRepo({ tasks: { t1: taskFile("impl", ["node check.mjs out-t1.txt"], "review: false\n") } });
   writeFileSync(join(repo, ".bullpen", "bullpen.lock"), String(process.pid));

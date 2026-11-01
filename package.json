@@ -1,6 +1,6 @@
 {
   "name": "agent-bullpen",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Keeps a multi-agent coding build moving: when one AI coding agent hits its usage limit, the next one takes over.",
   "keywords": [
     "ai",

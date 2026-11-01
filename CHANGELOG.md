@@ -2,6 +2,13 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [semantic versioning](https://semver.org/). While below 1.0, minor versions may change behavior.
 
+## [0.3.1] - 2026-10-31
+
+### Fixed
+
+- A review attempt that was cut off by a stopped run stayed marked `running` forever and was counted as a failed review. Any attempt that never ended is now closed as `interrupted` when Bullpen starts again.
+- A reviewer was set aside after two reviews that were not both failures: every earlier review by that agent on the task was counted, including successful ones. Only reviews that gave no verdict or timed out now count.
+
 ## [0.3.0] - 2026-10-31
 
 ### Added

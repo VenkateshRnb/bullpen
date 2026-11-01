@@ -294,16 +294,19 @@ class Engine {
   }
 
   private reconcile(): void {
-    // We hold the lock, so any "running" entry is left over from a crashed or stopped run.
+    // We hold the lock, so anything still marked "running" is left over from a crashed or stopped run.
     for (const [id, ts] of Object.entries(this.state.tasks)) {
       if (ts.status === "running") {
         ts.status = "pending";
-        const last = ts.attempts[ts.attempts.length - 1];
-        if (last && !last.endedAt) {
-          last.outcome = "interrupted";
-          last.endedAt = this.deps.now().toISOString();
-        }
         this.log(`${id}: recovered from an interrupted run`);
+      }
+      // An attempt that never ended was cut off, whether it was work or a review. Close it as
+      // interrupted so it is not counted as a failure and does not stay "running" forever.
+      for (const a of ts.attempts) {
+        if (!a.endedAt) {
+          a.outcome = "interrupted";
+          a.endedAt = this.deps.now().toISOString();
+        }
       }
     }
   }
@@ -567,7 +570,11 @@ class Engine {
       } else if (!last) {
         attempt.outcome = res.timedOut ? "timeout" : "review_unclear";
         attempt.note = tail(res.output, 300);
-        const bad = ts.attempts.filter((a) => a.role === "review" && a.agent === agent && a.outcome !== "limit").length;
+        // Only reviews that genuinely failed count: an interrupted, rate-limited or successful
+        // review says nothing about whether this agent can review this task.
+        const bad = ts.attempts.filter(
+          (a) => a.role === "review" && a.agent === agent && (a.outcome === "review_unclear" || a.outcome === "timeout"),
+        ).length;
         if (bad >= 2 && !ts.excluded.includes(agent)) ts.excluded.push(agent);
       } else if (last[1].toUpperCase() === "APPROVE") {
         this.markHealthy(agent);
