@@ -1,16 +1,16 @@
 name: Release
 
-# Runs when a version tag such as v0.1.0 is pushed. Needs an NPM_TOKEN repository secret.
+# Runs when a version tag such as v0.1.0 is pushed. It tests the code, builds an installable
+# tarball and attaches it to a GitHub release. Bullpen is not published to npm.
 on:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: read
-  id-token: write   # lets npm record build provenance
+  contents: write   # needed to create the release
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -18,11 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
-      - run: npm publish --provenance --access public
+      - name: Check that the tag matches the package version
+        run: |
+          v="$(node -p "require('./package.json').version")"
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME does not match package version $v"; exit 1; }
+      - run: npm pack
+      - name: Create the release
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" ./*.tgz --title "$GITHUB_REF_NAME" --generate-notes

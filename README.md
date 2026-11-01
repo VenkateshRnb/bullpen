@@ -49,8 +49,10 @@ Bullpen also:
 ## Installation
 
 ```bash
-npm install -g agent-bullpen
+npm install -g github:VenkateshRnb/bullpen
 ```
+
+Bullpen is distributed through GitHub and is not published on npm. The command above downloads the repository and builds it on your machine. Each [release](https://github.com/VenkateshRnb/bullpen/releases) also carries a prebuilt `.tgz`, which you can install with `npm install -g ./agent-bullpen-<version>.tgz`.
 
 To run from a clone:
 
@@ -132,7 +134,7 @@ Bullpen looks for each CLI on `PATH`. On Windows it also looks inside the Claude
 ## Limitations
 
 - No real usage-limit message has been observed from any tool. Detection is tested against sample wordings only. If an agent reaches its limit, please [report the exact message](https://github.com/VenkateshRnb/bullpen/issues/new?template=limit_message.yml).
-- Tested on Windows only. CI is configured for Linux, macOS and Windows, but macOS and Linux have not been used by hand.
+- Real agents have only been run on Windows. The test suite, which uses pretend agents, passes in CI on Linux, macOS and Windows, and the built CLI starts on Node 20, 22 and 24.
 - The Gemini CLI adapter was written from public documentation and has not been run against a real installation.
 - Running several tasks at once (`concurrency` above 1) has only been tested with test doubles.
 - Merge conflicts are not resolved automatically. The task is marked `needs_human`.

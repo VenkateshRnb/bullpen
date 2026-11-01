@@ -43,6 +43,11 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm ci
       - run: npm run build
+      - name: Install the packed tarball and run it
+        run: |
+          npm pack
+          npm install -g ./agent-bullpen-*.tgz
+          bullpen --version
       - name: Try the compiled CLI in a scratch repository
         run: |
           node bin/bullpen.js --version

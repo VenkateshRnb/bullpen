@@ -19,7 +19,7 @@ npm install
 npm run typecheck     # strict TypeScript
 npm run test:unit     # fast, a couple of seconds
 npm test              # full suite, about 3 to 4 minutes (it builds real git repos)
-npm run build         # compiles to dist/ (what gets published)
+npm run build         # compiles to dist/ (what ships in releases)
 ```
 
 Run the tool from source with `npm run bullpen -- doctor`.

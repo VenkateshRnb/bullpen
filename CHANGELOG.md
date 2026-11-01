@@ -2,9 +2,9 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [semantic versioning](https://semver.org/). While below 1.0, minor versions may change behavior.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-10-31
 
-First public version, extracted from a private project.
+First public version, extracted from a private project. It is distributed through GitHub (source install and release tarballs) and is not published to npm.
 
 ### Added
 
