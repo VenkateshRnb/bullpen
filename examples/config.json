@@ -1,0 +1,18 @@
+{
+  "concurrency": 1,
+  "review": true,
+  "taskTimeoutMinutes": 20,
+  "routing": {
+    "default": ["claude", "codex", "myagent"]
+  },
+  "agents": {
+    "myagent": {
+      "enabled": false,
+      "command": "myagent",
+      "promptVia": "stdin",
+      "args": ["run", "--non-interactive"],
+      "reviewArgs": ["run", "--non-interactive", "--read-only"],
+      "cooldownMinutes": 60
+    }
+  }
+}

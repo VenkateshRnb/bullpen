@@ -1,0 +1,54 @@
+name: Usage-limit message
+description: An agent reached its usage limit and you have the exact message.
+title: "Limit message: <tool and version>"
+labels: ["limit-message"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Detection depends on the exact wording. Paste the message exactly as printed.
+        Remove anything private (names, paths, tokens) but keep the wording and any reset time.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool and version
+      placeholder: "Claude Code 2.1.308, Codex 0.165, Gemini CLI ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: plan
+    attributes:
+      label: What kind of account hit the limit?
+      options:
+        - Subscription (consumer plan)
+        - API key
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: Exact message
+      description: Paste the full output. Use a code block.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: exit
+    attributes:
+      label: Exit code
+      placeholder: "1"
+  - type: dropdown
+    id: detected
+    attributes:
+      label: Did Bullpen notice it?
+      options:
+        - Yes, and it rested the agent correctly
+        - Yes, but the reset time was wrong or missing
+        - No, it treated it as an ordinary error
+        - I did not run it through Bullpen
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, macOS 15, Ubuntu 24.04"

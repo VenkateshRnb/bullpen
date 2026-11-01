@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+
+  smoke:
+    name: Built CLI on Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run build
+      - name: Try the compiled CLI in a scratch repository
+        run: |
+          node bin/bullpen.js --version
+          node bin/bullpen.js --help
+          d="$(mktemp -d)"
+          cd "$d"
+          git init -b main
+          git config user.email ci@example.com
+          git config user.name CI
+          echo hi > a.txt
+          git add -A
+          git commit -m init
+          node "$GITHUB_WORKSPACE/bin/bullpen.js" init
+          node "$GITHUB_WORKSPACE/bin/bullpen.js" doctor
+          node "$GITHUB_WORKSPACE/bin/bullpen.js" run --once

@@ -1,0 +1,53 @@
+{
+  "name": "agent-bullpen",
+  "version": "0.1.0",
+  "description": "Keeps a multi-agent coding build moving: when one AI coding agent hits its usage limit, the next one takes over.",
+  "keywords": [
+    "ai",
+    "coding-agents",
+    "claude-code",
+    "codex",
+    "gemini-cli",
+    "orchestrator",
+    "rate-limit",
+    "git-worktree",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "Naga Bala Venkatesh Ramoju (https://github.com/VenkateshRnb)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VenkateshRnb/bullpen.git"
+  },
+  "homepage": "https://github.com/VenkateshRnb/bullpen#readme",
+  "bugs": {
+    "url": "https://github.com/VenkateshRnb/bullpen/issues"
+  },
+  "type": "module",
+  "bin": {
+    "bullpen": "bin/bullpen.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.ts\"",
+    "test:unit": "node --disable-warning=ExperimentalWarning --test test/limits.test.ts test/tasks.test.ts test/prompt.test.ts",
+    "bullpen": "node --disable-warning=ExperimentalWarning src/cli.ts",
+    "prepublishOnly": "npm run typecheck && npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
