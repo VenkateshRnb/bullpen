@@ -15,13 +15,13 @@ export const DEFAULTS: Config = {
   allowSelfReview: false,
   pollSeconds: 60,
   routing: {
-    security: ["claude", "codex", "gemini"],
-    arch: ["claude", "codex", "gemini"],
-    impl: ["codex", "claude", "gemini"],
-    research: ["gemini", "claude", "codex"],
-    docs: ["gemini", "claude", "codex"],
-    ui: ["gemini", "claude", "codex"],
-    default: ["claude", "codex", "gemini"],
+    security: ["claude", "codex", "antigravity"],
+    arch: ["claude", "codex", "antigravity"],
+    impl: ["codex", "claude", "antigravity"],
+    research: ["antigravity", "claude", "codex"],
+    docs: ["antigravity", "claude", "codex"],
+    ui: ["antigravity", "claude", "codex"],
+    default: ["claude", "codex", "antigravity"],
   },
   conventionsFiles: ["AGENTS.md", "CLAUDE.md", ".bullpen/CONVENTIONS.md"],
   agents: {
@@ -49,18 +49,24 @@ export const DEFAULTS: Config = {
       reviewArgs: ["exec", "--sandbox", "read-only", "-C", "{cwd}", "-"],
       authCheck: { args: ["login", "status"], okPattern: "logged in" },
     },
-    // EXPERIMENTAL: written from third-party documentation, never run against a real Gemini CLI.
-    // The prompt goes through a file because Gemini's -p takes it on the command line, where long
-    // multi-line prompts break on Windows. GEMINI_CLI_TRUST_WORKSPACE skips the headless trust prompt.
-    // After `npm i -g @google/gemini-cli`, run `bullpen doctor` and adjust.
-    gemini: {
+    // Antigravity CLI (`agy`) is Google's replacement for Gemini CLI for personal and Google AI
+    // Pro/Ultra accounts. The prompt goes through a file because -p takes it on the command line,
+    // where long multi-line prompts break on Windows. --settings applies the permission rules for
+    // this run only and never changes the user's settings file. Sign in once by running `agy`.
+    antigravity: {
       enabled: true,
       command: null,
       promptVia: "file",
       cooldownMinutes: 60,
-      args: ["-p", "Read the file {promptFile} in the current directory and follow its instructions exactly.", "--approval-mode", "auto_edit"],
-      reviewArgs: ["-p", "Read the file {promptFile} in the current directory and follow its instructions exactly.", "--approval-mode", "plan"],
-      env: { GEMINI_CLI_TRUST_WORKSPACE: "true" },
+      args: [
+        "-p", "Read the file {promptFile} in the current directory and follow its instructions exactly.",
+        "--mode", "accept-edits",
+        "--settings", '{"permissions":{"allow":["command(git)","command(npm)","command(node)","command(npx)"]}}',
+      ],
+      reviewArgs: [
+        "-p", "Read the file {promptFile} in the current directory and follow its instructions exactly.",
+        "--mode", "plan",
+      ],
     },
   },
 };
@@ -140,6 +146,15 @@ function newest(paths: string[]): string | null {
  * (the native installer and the desktop app's data folder) and have not been tested.
  */
 const DISCOVER: Record<string, () => string | null> = {
+  // The CLI is called `agy`. The installer puts it in a folder that only new terminals have on PATH.
+  antigravity: () => {
+    const onPath = which("agy");
+    if (onPath) return onPath;
+    const exe = process.platform === "win32" ? ".exe" : "";
+    const candidates = [join(homedir(), ".local", "bin", `agy${exe}`)];
+    if (process.env.LOCALAPPDATA) candidates.unshift(join(process.env.LOCALAPPDATA, "agy", "bin", "agy.exe"));
+    return candidates.find((p) => existsSync(p)) ?? null;
+  },
   claude: () => {
     const found: string[] = [];
     const la = process.env.LOCALAPPDATA;

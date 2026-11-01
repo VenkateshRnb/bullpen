@@ -102,8 +102,7 @@ function doctor(repo: string): void {
     const ver = (v.stdout || v.stderr || "").trim().split(/\r?\n/)[0];
     const auth = authStatus(cmd, a);
     const signIn = auth === "ok" ? "signed in" : auth === "not_signed_in" ? "NOT SIGNED IN" : "sign-in unknown";
-    const experimental = name === "gemini" ? "  (experimental: flags unverified)" : "";
-    console.log(`${name.padEnd(8)} ${ver || "(no version output)"}  [${signIn}]${experimental}\n         ${cmd}`);
+    console.log(`${name.padEnd(12)} ${ver || "(no version output)"}  [${signIn}]\n             ${cmd}`);
     if (auth === "not_signed_in") console.log(`         fix: run  "${cmd}" ${name === "codex" ? "login" : "auth login"}   in a terminal and finish the browser sign-in`);
   }
 }

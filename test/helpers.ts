@@ -33,7 +33,7 @@ export function makeRepo(s: Scenario) {
   const agents: Record<string, unknown> = {
     claude: { enabled: false },
     codex: { enabled: false },
-    gemini: { enabled: false },
+    antigravity: { enabled: false },
   };
   for (const n of names) {
     agents[n] = {

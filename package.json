@@ -1,13 +1,13 @@
 {
   "name": "agent-bullpen",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keeps a multi-agent coding build moving: when one AI coding agent hits its usage limit, the next one takes over.",
   "keywords": [
     "ai",
     "coding-agents",
     "claude-code",
     "codex",
-    "gemini-cli",
+    "antigravity",
     "orchestrator",
     "rate-limit",
     "git-worktree",

@@ -2,6 +2,20 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [semantic versioning](https://semver.org/). While below 1.0, minor versions may change behavior.
 
+## [0.2.0] - 2026-10-31
+
+### Added
+
+- An Antigravity CLI (`agy`) adapter. Verified on Windows with agy 1.4.12.
+
+### Removed
+
+- The Gemini CLI adapter from the defaults. Google moved personal and Google AI Pro/Ultra accounts to Antigravity CLI on 2026-06-18. Gemini CLI can still be added through configuration for API-key or Enterprise use.
+
+### Changed
+
+- Default routing lists `antigravity` where it listed `gemini`.
+
 ## [0.1.0] - 2026-10-31
 
 First public version, extracted from a private project. It is distributed through GitHub (source install and release tarballs) and is not published to npm.

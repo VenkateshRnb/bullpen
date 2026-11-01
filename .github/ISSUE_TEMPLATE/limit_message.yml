@@ -12,7 +12,7 @@ body:
     id: tool
     attributes:
       label: Tool and version
-      placeholder: "Claude Code 2.1.308, Codex 0.165, Gemini CLI ..."
+      placeholder: "Claude Code 2.1.308, Codex 0.165, Antigravity CLI ..."
     validations:
       required: true
   - type: dropdown

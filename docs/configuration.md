@@ -33,13 +33,13 @@ Routing is a preference, not a restriction. Any other enabled agent is used as a
 
 ```json
 "routing": {
-  "security": ["claude", "codex", "gemini"],
-  "arch":     ["claude", "codex", "gemini"],
-  "impl":     ["codex", "claude", "gemini"],
-  "research": ["gemini", "claude", "codex"],
-  "docs":     ["gemini", "claude", "codex"],
-  "ui":       ["gemini", "claude", "codex"],
-  "default":  ["claude", "codex", "gemini"]
+  "security": ["claude", "codex", "antigravity"],
+  "arch":     ["claude", "codex", "antigravity"],
+  "impl":     ["codex", "claude", "antigravity"],
+  "research": ["antigravity", "claude", "codex"],
+  "docs":     ["antigravity", "claude", "codex"],
+  "ui":       ["antigravity", "claude", "codex"],
+  "default":  ["claude", "codex", "antigravity"]
 }
 ```
 
@@ -66,7 +66,7 @@ Each entry under `agents` has these fields:
 
 **Codex** runs `codex exec --sandbox workspace-write -C <worktree> -`, with the prompt on stdin. Reviews use `--sandbox read-only`.
 
-**Gemini CLI** is experimental. It runs `gemini -p "Read the file .bullpen-prompt.md ... " --approval-mode auto_edit` (reviews use `plan`) with `GEMINI_CLI_TRUST_WORKSPACE=true`. None of this has been run against a real install.
+**Antigravity CLI** (`agy`) runs `agy -p "Read the file .bullpen-prompt.md ..." --mode accept-edits --settings <rules>` with the prompt in a file, where the rules allow `git`, `npm`, `node` and `npx` for that run only. Reviews use `--mode plan`. Run `agy` once yourself first to sign in; headless runs reuse that sign-in. A command outside the allow-list is denied without failing the run, so add rules for your own tools (for example `command(pnpm)`) by editing `args` in your config. Bullpen runs the task's checks itself, so a denied command shows up as a failed check rather than a silent success.
 
 The tool lists above are what the agents may do unattended. If you want agents to run other commands (a build tool, a test runner), add them to `args` deliberately. Do not replace them with a blanket "skip all permissions" flag unless the whole run is inside a disposable sandbox or container.
 

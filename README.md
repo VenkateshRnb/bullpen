@@ -5,7 +5,7 @@ Bullpen runs a queue of coding tasks across several AI coding agent CLIs and kee
 [![CI](https://github.com/VenkateshRnb/bullpen/actions/workflows/ci.yml/badge.svg)](https://github.com/VenkateshRnb/bullpen/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Status: version 0.1, early. It has been used with Claude Code and Codex on Windows. See [Limitations](#limitations).
+Status: early (0.x). It has been used with Claude Code, Codex and Antigravity CLI on Windows. See [Limitations](#limitations).
 
 ## Overview
 
@@ -119,7 +119,7 @@ Keep tasks small, about an hour of work or less. A small task loses little when 
 |---|---|---|
 | Claude Code | Supported | 2.1.308 on Windows |
 | Codex CLI | Supported | 0.165.0 on Windows |
-| Gemini CLI | Experimental | Not tested |
+| Antigravity CLI (`agy`) | Supported | 1.4.12 on Windows |
 | Other CLIs | Through configuration | See [Adding an agent](docs/adding-an-agent.md) |
 
 Bullpen looks for each CLI on `PATH`. On Windows it also looks inside the Claude and Codex desktop apps, whose folders change with every update.
@@ -135,7 +135,7 @@ Bullpen looks for each CLI on `PATH`. On Windows it also looks inside the Claude
 
 - No real usage-limit message has been observed from any tool. Detection is tested against sample wordings only. If an agent reaches its limit, please [report the exact message](https://github.com/VenkateshRnb/bullpen/issues/new?template=limit_message.yml).
 - Real agents have only been run on Windows. The test suite, which uses pretend agents, passes in CI on Linux, macOS and Windows, and the built CLI starts on Node 20, 22 and 24.
-- The Gemini CLI adapter was written from public documentation and has not been run against a real installation.
+- Gemini CLI is not included by default. Google moved personal and Google AI Pro/Ultra accounts to Antigravity CLI, and Gemini CLI now serves API-key and Enterprise users. It can be added through configuration.
 - Running several tasks at once (`concurrency` above 1) has only been tested with test doubles.
 - Merge conflicts are not resolved automatically. The task is marked `needs_human`.
 - Agent review is a second opinion and can miss defects.
@@ -161,4 +161,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT
 
 [MIT](LICENSE) © Naga Bala Venkatesh Ramoju
 
-Bullpen is an independent project and is not affiliated with Anthropic, OpenAI or Google. Claude, Codex and Gemini are trademarks of their owners and are named here only to describe compatibility.
+Bullpen is an independent project and is not affiliated with Anthropic, OpenAI or Google. Claude, Codex, Gemini and Antigravity are trademarks of their owners and are named here only to describe compatibility.
